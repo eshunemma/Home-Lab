@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: https://github.com/eshunemma/Home-Lab.git
     targetRevision: HEAD
-    path: Home-Lab/argocd-apps/apps/postgresql
+    path: argocd-apps/apps/postgresql
   destination:
     server: https://kubernetes.default.svc
     namespace: database
@@ -18,4 +18,3 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
-
