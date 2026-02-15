@@ -1,0 +1,5 @@
+*-secret.yaml
+postgres-secret.yaml
+
+# Only commit sealed secrets
+!*-sealed-secret.yaml
