@@ -4,17 +4,6 @@ metadata:
   name: database
 ---
 apiVersion: v1
-kind: Secret
-metadata:
-  name: postgres-secret
-  namespace: database
-type: Opaque
-stringData:
-  POSTGRES_USER: admin
-  POSTGRES_PASSWORD: changeme123 # Change this!
-  POSTGRES_DB: myapp
----
-apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: postgres-pvc
@@ -32,7 +21,7 @@ metadata:
   name: postgres
   namespace: database
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: postgres
