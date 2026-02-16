@@ -7,3 +7,7 @@ postgres-secret.yaml
 # MySQL secrets
 mysql/*-secret.yaml
 !mysql/*-sealed-secret.yaml
+
+# WordPress secrets
+*-secret.yaml
+!*-sealed-secret.yaml
