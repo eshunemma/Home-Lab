@@ -52,8 +52,6 @@ spec:
   ports:
     - port: 3306
       targetPort: 3306
-      nodePort: 30306
-
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
@@ -61,13 +59,13 @@ metadata:
   name: wordpress-routes
   namespace: database
 spec:
-  parentRefs:                 # Which Gateway and listener to attach to
-    - name: gateway           # Gateway name
+  parentRefs: # Which Gateway and listener to attach to
+    - name: gateway # Gateway name
       namespace: ngf-gatewayapi-ns
-      sectionName: http       # Listener name from Gateway spec
+      sectionName: http # Listener name from Gateway spec
   hostnames:
     - "mysql.eshundev.online"
-  rules:                      # Routing rules
-    -  backendRefs:
+  rules: # Routing rules
+    - backendRefs:
         - name: mysql
           port: 3306
