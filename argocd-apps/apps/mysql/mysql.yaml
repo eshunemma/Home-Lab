@@ -62,7 +62,7 @@ spec:
   parentRefs: # Which Gateway and listener to attach to
     - name: gateway # Gateway name
       namespace: ngf-gatewayapi-ns
-      sectionName: tcp # Listener name from Gateway spec (must be TCP)
+      sectionName: tcp-mysql # Listener name from Gateway spec (must be TCP)
   rules: # Routing rules
     - backendRefs:
         - name: mysql
