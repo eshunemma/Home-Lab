@@ -29,11 +29,11 @@ spec:
       protocol: TCP
       port: 5432
       allowedRoutes:
-      namespaces:
-        from: All
+        namespaces:
+          from: All
     - name: tcp-redis
       protocol: TCP
       port: 6379
       allowedRoutes:
-      namespaces:
-        from: All
+        namespaces:
+          from: All
