@@ -1,0 +1,14 @@
+loki:
+  auth_enabled: false
+  storage:
+    type: filesystem
+  persistence:
+    enabled: true
+    storageClassName: manual-storage
+    size: 10Gi
+
+promtail:
+  enabled: true
+  config:
+    clients:
+      - url: http://loki:3100/loki/api/v1/push

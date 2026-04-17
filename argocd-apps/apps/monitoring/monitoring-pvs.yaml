@@ -1,0 +1,68 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: grafana-pv
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: manual-storage
+  claimRef:
+    namespace: monitoring
+    name: kube-prom-stack-grafana
+  hostPath:
+    path: /data/monitoring/grafana
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: prometheus-pv
+spec:
+  capacity:
+    storage: 20Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: manual-storage
+  claimRef:
+    namespace: monitoring
+    name: prometheus-db-prometheus-kube-prom-stack-kube-prome-prometheus-0
+  hostPath:
+    path: /data/monitoring/prometheus
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: loki-pv
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: manual-storage
+  claimRef:
+    namespace: monitoring
+    name: storage-loki-0
+
+  hostPath:
+    path: /data/monitoring/loki
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: alertmanager-pv
+spec:
+  capacity:
+    storage: 2Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: manual-storage
+  claimRef:
+    namespace: monitoring
+    name: alertmanager-db-alertmanager-kube-prom-stack-kube-prome-alertmanager-0
+  hostPath:
+    path: /data/monitoring/alertmanager

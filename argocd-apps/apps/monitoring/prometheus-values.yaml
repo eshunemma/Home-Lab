@@ -1,0 +1,47 @@
+grafana:
+  enabled: true
+  initChownData:
+    enabled: false
+  admin:
+    existingSecret: grafana-admin-secret
+    userKey: admin-user
+    passwordKey: admin-password
+  persistence:
+    enabled: true
+    storageClassName: manual-storage
+    size: 5Gi
+  service:
+    type: NodePort
+    nodePort: 32000
+  additionalDataSources:
+    - name: Loki
+      type: loki
+      url: http://loki:3100
+      isDefault: false
+
+prometheus:
+  prometheusSpec:
+    retention: 30d
+    storageSpec:
+      volumeClaimTemplate:
+        metadata:
+          name: prometheus-db
+        spec:
+          storageClassName: manual-storage
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 20Gi
+
+alertmanager:
+  alertmanagerSpec:
+    storage:
+      volumeClaimTemplate:
+        metadata:
+          name: alertmanager-db
+        spec:
+          storageClassName: manual-storage
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 2Gi
