@@ -1,17 +1,17 @@
-apiVersion: gateway.networking.k8s.io/v1  # API group and version for Gateway API
-kind: Gateway                             # Resource type: Gateway
+apiVersion: gateway.networking.k8s.io/v1 # API group and version for Gateway API
+kind: Gateway # Resource type: Gateway
 metadata:
-  name: gateway                           # Name of the Gateway resource
-  namespace: ngf-gatewayapi-ns            # Namespace where this Gateway resides
+  name: gateway # Name of the Gateway resource
+  namespace: ngf-gatewayapi-ns # Namespace where this Gateway resides
 spec:
-  gatewayClassName: nginx                 # References the GatewayClass to determine LB type/implementation
-  listeners:                              # Listeners define how the Gateway accepts traffic
-    - name: http                          # Listener name (unique within this Gateway)
-      port: 80                            # Port on which the listener will accept traffic
-      protocol: HTTP                      # Protocol for this listener (HTTP, HTTPS, TCP, etc.)
-      allowedRoutes:                      # Rules for which Routes can bind to this listener
+  gatewayClassName: nginx # References the GatewayClass to determine LB type/implementation
+  listeners: # Listeners define how the Gateway accepts traffic
+    - name: http # Listener name (unique within this Gateway)
+      port: 80 # Port on which the listener will accept traffic
+      protocol: HTTP # Protocol for this listener (HTTP, HTTPS, TCP, etc.)
+      allowedRoutes: # Rules for which Routes can bind to this listener
         namespaces:
-          from: All                       # Allows Routes from any namespace to attach
+          from: All # Allows Routes from any namespace to attach
     - name: https
       protocol: HTTPS
       port: 443
@@ -19,3 +19,21 @@ spec:
       allowedRoutes:
         namespaces:
           from: All
+    - name: tcp-mysql
+      protocol: TCP
+      port: 3306
+      allowedRoutes:
+        namespaces:
+          from: All
+    - name: tcp-postgres
+      protocol: TCP
+      port: 5432
+      allowedRoutes:
+      namespaces:
+        from: All
+    - name: tcp-redis
+      protocol: TCP
+      port: 6379
+      allowedRoutes:
+      namespaces:
+        from: All
