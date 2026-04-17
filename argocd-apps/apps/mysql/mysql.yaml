@@ -53,7 +53,7 @@ spec:
     - port: 3306
       targetPort: 3306
 ---
-apiVersion: gateway.networking.k8s.io/v1alpha2
+apiVersion: gateway.networking.k8s.io/v1
 kind: TCPRoute
 metadata:
   name: mysql-route
