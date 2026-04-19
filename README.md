@@ -389,8 +389,8 @@ These are the skills SREs, Platform Engineers, and DevOps leaders are hired to h
 ## 📧 Contact & Links
 
 - **Portfolio**: [portfolio.eshundev.online](https://portfolio.eshundev.online)
-- **GitHub**: [github.com/eshundev](https://github.com/eshundev)
-- **LinkedIn**: [Connect with me]()
+- **GitHub**: [github.com/eshundev](https://github.com/eshunemma)
+- **LinkedIn**: [Connect with me](https://www.linkedin.com/in/eshun-emmanuel/)
 
 ---
 
