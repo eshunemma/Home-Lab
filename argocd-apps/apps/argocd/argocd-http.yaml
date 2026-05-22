@@ -13,4 +13,4 @@ spec:
   rules: # Routing rules
     - backendRefs:
         - name: argocd-server # Service to send traffic to
-          port: 30299
+          port: 80
