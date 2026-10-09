@@ -29,10 +29,67 @@ grafana:
       type: loki
       url: http://loki:3100
       isDefault: false
+  # Dashboards for the Contabo production server (downloaded from grafana.com at pod start,
+  # pinned revisions). Filter them with the `job` / `instance` variables: job=contabo-*.
+  dashboardProviders:
+    dashboardproviders.yaml:
+      apiVersion: 1
+      providers:
+        - name: contabo
+          folder: Contabo (production)
+          type: file
+          disableDeletion: true
+          editable: false
+          options:
+            path: /var/lib/grafana/dashboards/contabo
+  dashboards:
+    contabo:
+      node-exporter-full:
+        gnetId: 1860
+        revision: 45
+        datasource: [{ name: DS_PROMETHEUS, value: Prometheus }]
+      docker-monitoring:
+        gnetId: 15798
+        revision: 16
+        datasource: [{ name: DS_PROMETHEUS, value: Prometheus }]
+      postgresql:
+        gnetId: 9628
+        revision: 8
+        datasource: [{ name: DS_PROMETHEUS, value: Prometheus }]
+      nginx:
+        gnetId: 12708
+        revision: 1
+        datasource: [{ name: DS_PROMETHEUS, value: Prometheus }]
 
 prometheus:
   prometheusSpec:
     retention: 30d
+    # Contabo production server, scraped over Tailscale (100.105.86.39). Its exporters listen only on
+    # the Tailscale IP, and its ufw allows them only from this host's Tailscale IP (100.108.220.96).
+    # Deployed from /opt/apps/monitoring-exporters on Contabo (see the DevOps-Agent docs).
+    additionalScrapeConfigs:
+      - job_name: contabo-node
+        static_configs:
+          - targets: ['100.105.86.39:9100']
+            labels: { instance: contabo-prod, env: production }
+      - job_name: contabo-cadvisor
+        scrape_interval: 30s
+        static_configs:
+          - targets: ['100.105.86.39:9101']
+            labels: { instance: contabo-prod, env: production }
+        metric_relabel_configs:
+          # keep named Docker containers and the machine root; drop systemd/cgroup noise
+          - source_labels: [id, name]
+            regex: '/;|.+;.+'
+            action: keep
+      - job_name: contabo-postgres
+        static_configs:
+          - targets: ['100.105.86.39:9187']
+            labels: { instance: contabo-prod, env: production }
+      - job_name: contabo-nginx
+        static_configs:
+          - targets: ['100.105.86.39:9113']
+            labels: { instance: contabo-prod, env: production }
     storageSpec:
       volumeClaimTemplate:
         metadata:
@@ -43,6 +100,71 @@ prometheus:
           resources:
             requests:
               storage: 20Gi
+
+# Alerts for the Contabo production server -> Slack (via alertmanager-values.yaml).
+# Contabo also has its own on-box checks with phone alerts (ops-monitor), UptimeRobot and a
+# Healthchecks.io heartbeat; these are an extra layer, not the only one — if this home lab is down,
+# these rules are down with it.
+additionalPrometheusRulesMap:
+  contabo-production:
+    groups:
+      - name: contabo.rules
+        rules:
+          - alert: ContaboExporterDown
+            expr: up{env="production"} == 0
+            for: 5m
+            labels: { severity: critical }
+            annotations:
+              summary: 'Contabo exporter {{ $labels.job }} is unreachable'
+              description: 'Prometheus cannot scrape {{ $labels.job }} on contabo-prod for 5m (Contabo down, Tailscale down, or exporter stopped).'
+          - alert: ContaboDiskFilling
+            expr: (1 - node_filesystem_avail_bytes{job="contabo-node",mountpoint="/"} / node_filesystem_size_bytes{job="contabo-node",mountpoint="/"}) > 0.80
+            for: 15m
+            labels: { severity: warning }
+            annotations:
+              summary: 'Contabo root disk is {{ $value | humanizePercentage }} full'
+              description: 'Free space on / of contabo-prod has been below 20% for 15m.'
+          - alert: ContaboMemoryLow
+            expr: node_memory_MemAvailable_bytes{job="contabo-node"} / node_memory_MemTotal_bytes{job="contabo-node"} < 0.10
+            for: 10m
+            labels: { severity: warning }
+            annotations:
+              summary: 'Contabo has only {{ $value | humanizePercentage }} memory available'
+              description: 'Available memory on contabo-prod has been below 10% for 10m.'
+          - alert: ContaboHighLoad
+            expr: node_load15{job="contabo-node"} / count without (cpu, mode) (node_cpu_seconds_total{job="contabo-node",mode="idle"}) > 1.5
+            for: 30m
+            labels: { severity: warning }
+            annotations:
+              summary: 'Contabo load is {{ $value | humanize }} per CPU'
+              description: '15-minute load average per CPU on contabo-prod has been above 1.5 for 30m.'
+          - alert: ContaboPostgresDown
+            expr: pg_up{job="contabo-postgres"} == 0
+            for: 2m
+            labels: { severity: critical }
+            annotations:
+              summary: 'Contabo shared Postgres is down'
+              description: 'postgres-exporter cannot connect to the shared Postgres on contabo-prod; all production apps are affected.'
+          - alert: ContaboPostgresConnectionsHigh
+            expr: sum(pg_stat_activity_count{job="contabo-postgres"}) / max(pg_settings_max_connections{job="contabo-postgres"}) > 0.8
+            for: 10m
+            labels: { severity: warning }
+            annotations:
+              summary: 'Contabo Postgres connections at {{ $value | humanizePercentage }} of max'
+              description: 'More than 80% of max_connections in use on contabo-prod for 10m.'
+          - alert: ContaboNginxDown
+            expr: nginx_up{job="contabo-nginx"} == 0
+            for: 2m
+            labels: { severity: critical }
+            annotations:
+              summary: 'Contabo nginx is not answering'
+              description: 'nginx-exporter cannot read nginx stub_status on contabo-prod; all public sites are affected.'
+          - alert: ContaboContainerRestarting
+            expr: changes(container_start_time_seconds{job="contabo-cadvisor",name!=""}[30m]) > 2
+            labels: { severity: warning }
+            annotations:
+              summary: 'Contabo container {{ $labels.name }} restarted {{ $value }} times in 30m'
+              description: 'Container {{ $labels.name }} on contabo-prod looks like it is crash-looping.'
 
 alertmanager:
   alertmanagerSpec:
