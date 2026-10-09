@@ -6,6 +6,16 @@ loki:
     enabled: true
     storageClassName: manual-storage
     size: 10Gi
+  # Keep logs for 14 days, then delete them. Until 2026-10-09 retention was off (kept forever).
+  # This Loki also receives the Contabo production server's container logs (pushed by Grafana Alloy
+  # over Tailscale; see the DevOps-Agent docs), which contain personal data — don't raise this lightly.
+  config:
+    compactor:
+      retention_enabled: true
+      retention_delete_delay: 2h
+      compaction_interval: 10m
+    limits_config:
+      retention_period: 336h
 
 promtail:
   enabled: true
