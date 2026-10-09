@@ -1,0 +1,23 @@
+# Argo CD (chart argo-cd 7.7.0, release `argocd` in namespace `argocd`) — installed with Helm, not
+# managed by Argo CD itself. Apply with:
+#   helm upgrade argocd argo-cd --repo https://argoproj.github.io/argo-helm --version 7.7.0 \
+#     -n argocd -f argocd-apps/apps/argocd/argocd-values.yaml
+#
+# Public access: gitops.eshundev.online -> Cloudflare Access (owner's email, one-time PIN)
+#   -> Cloudflare Tunnel -> NGINX Gateway `http` listener -> HTTPRoute argocd-routes (argocd-http.yaml)
+#   -> argocd-server:80.
+# Cloudflare terminates TLS and the tunnel speaks plain HTTP, so argocd-server must run insecure and
+# there must be NO http->https redirect route for this host (that caused an endless 301 loop).
+configs:
+  cm:
+    url: https://gitops.eshundev.online
+  params:
+    server.insecure: true
+
+server:
+  service:
+    # Previously hand-patched to NodePort; kept, with the same ports, for LAN access
+    # (http://192.168.100.37:31482).
+    type: NodePort
+    nodePortHttp: 31482
+    nodePortHttps: 30299
