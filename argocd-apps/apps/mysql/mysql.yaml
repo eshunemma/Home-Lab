@@ -52,18 +52,7 @@ spec:
   ports:
     - port: 3306
       targetPort: 3306
----
-apiVersion: gateway.networking.k8s.io/v1
-kind: TCPRoute
-metadata:
-  name: mysql-route
-  namespace: database
-spec:
-  parentRefs: # Which Gateway and listener to attach to
-    - name: gateway # Gateway name
-      namespace: ngf-gatewayapi-ns
-      sectionName: tcp-mysql # Listener name from Gateway spec (must be TCP)
-  rules: # Routing rules
-    - backendRefs:
-        - name: mysql
-          port: 3306
+# No TCPRoute here: TCPRoute is in the Gateway API *experimental* channel, whose CRDs are not
+# installed on this cluster. Argo CD rejected the whole app ("one or more synchronization tasks
+# are not valid") from 2026-08-20 until it was removed — so the route never existed and nothing
+# could have used it. In-cluster clients reach MySQL through the `mysql` Service above.

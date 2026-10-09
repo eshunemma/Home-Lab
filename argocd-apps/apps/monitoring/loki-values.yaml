@@ -13,7 +13,16 @@ promtail:
     clients:
       - url: http://loki:3100/loki/api/v1/push
 
+# loki-stack ships its own Grafana datasource ConfigMap with `loki.isDefault: true`. Next to
+# kube-prometheus-stack's default Prometheus datasource, Grafana refuses to start ("Only one
+# datasource per organization can be marked as default"). Loki is already provided as a
+# non-default datasource by prometheus-values.yaml (grafana.additionalDataSources), so the
+# chart's own datasource ConfigMap is switched off entirely.
+#
+# This file is applied with Helm, not Argo CD:
+#   helm upgrade loki loki-stack --repo https://grafana.github.io/helm-charts --version 2.10.3 \
+#     -n monitoring -f argocd-apps/apps/monitoring/loki-values.yaml
 grafana:
   sidecar:
     datasources:
-      isDefaultDatasource: false
+      enabled: false
