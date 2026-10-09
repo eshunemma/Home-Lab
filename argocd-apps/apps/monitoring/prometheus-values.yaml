@@ -75,17 +75,24 @@ prometheus:
       - job_name: contabo-cadvisor
         scrape_interval: 30s
         static_configs:
+          # `service` is what the "Docker monitoring" dashboard (15798) filters on
           - targets: ['100.105.86.39:9101']
-            labels: { instance: contabo-prod, env: production }
+            labels: { instance: contabo-prod, env: production, service: contabo-prod }
         metric_relabel_configs:
           # keep named Docker containers and the machine root; drop systemd/cgroup noise
           - source_labels: [id, name]
             regex: '/;|.+;.+'
             action: keep
+          # plain-Docker cAdvisor labels containers `name`; the dashboard expects `container`
+          - source_labels: [name]
+            regex: '(.+)'
+            target_label: container
       - job_name: contabo-postgres
         static_configs:
+          # `kubernetes_namespace` / `release` are what the "PostgreSQL Database" dashboard (9628)
+          # uses to pick an instance; it was built for Kubernetes deployments of the exporter.
           - targets: ['100.105.86.39:9187']
-            labels: { instance: contabo-prod, env: production }
+            labels: { instance: contabo-prod, env: production, kubernetes_namespace: contabo, release: contabo-prod }
       - job_name: contabo-nginx
         static_configs:
           - targets: ['100.105.86.39:9113']
