@@ -42,6 +42,17 @@ grafana:
           editable: false
           options:
             path: /var/lib/grafana/dashboards/contabo
+        # "Contabo logs" — our own dashboard, kept as a ConfigMap in this repo
+        # (contabo-logs-dashboard.yaml, applied by Argo CD) and mounted via dashboardsConfigMaps.
+        - name: contabo-logs
+          folder: Contabo (production)
+          type: file
+          disableDeletion: true
+          editable: false
+          options:
+            path: /var/lib/grafana/dashboards/contabo-logs
+  dashboardsConfigMaps:
+    contabo-logs: grafana-dashboard-contabo-logs
   dashboards:
     contabo:
       node-exporter-full:
