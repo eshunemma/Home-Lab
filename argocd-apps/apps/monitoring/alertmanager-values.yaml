@@ -1,3 +1,7 @@
+# Applied with Helm (not Argo CD), together with prometheus-values.yaml:
+#   helm upgrade kube-prom-stack kube-prometheus-stack --repo https://prometheus-community.github.io/helm-charts \
+#     --version 82.1.0 -n monitoring -f prometheus-values.yaml -f alertmanager-values.yaml
+# The Slack webhook URL lives in the Secret monitoring/alertmanager-slack-secret (key webhook-url).
 alertmanager:
   config:
     global:
@@ -10,8 +14,20 @@ alertmanager:
       group_interval: 5m
       repeat_interval: 12h
       receiver: 'slack-notifications'
+      # Watchdog fires all the time by design (it proves the pipeline is alive) and InfoInhibitor
+      # only exists to mute info-level alerts — neither should reach Slack.
+      routes:
+        - receiver: 'null'
+          matchers: ['alertname = "Watchdog"']
+        - receiver: 'null'
+          matchers: ['alertname = "InfoInhibitor"']
 
+    # `receivers` REPLACES the chart's list, and the chart's default routes point at a receiver
+    # called "null". Without this entry the operator rejects the whole config ("undefined receiver
+    # \"null\" used in route") and silently keeps a discard-everything default — which is why no
+    # alert reached Slack from 2026-02-19 to 2026-10-09.
     receivers:
+      - name: 'null'
       - name: 'slack-notifications'
         slack_configs:
           - channel: 'all-home-lab-more-gas'
